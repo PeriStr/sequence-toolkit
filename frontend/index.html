@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sequence Toolkit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Το CSS σε ξεχωριστό αρχείο -->
+<link rel="stylesheet" href="/static/style.css">
+<!-- Chart.js: για τα γραφήματα (χρειάζεται σύνδεση στο internet) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="logo"><span class="dot">🧬</span> Sequence Toolkit</div>
+    <p>Ένα εργαλείο για ανάλυση ακολουθιών DNA, ανίχνευση μεταλλάξεων και ταξινόμηση
+       με μηχανική μάθηση — όλα σε ένα.</p>
+  </div>
+</div>
+
+<div class="tabbar">
+  <button class="tab active" data-tab="p1"><span class="num">1</span> Ανάλυση</button>
+  <button class="tab" data-tab="p2"><span class="num">2</span> Μεταλλάξεις</button>
+  <button class="tab" data-tab="p3"><span class="num">3</span> Ταξινόμηση</button>
+  <button class="tab" data-tab="p4"><span class="num">🕘</span> Ιστορικό</button>
+</div>
+
+<main>
+  <!-- ============ TAB 1 ============ -->
+  <section id="p1" class="panel active">
+    <div class="card">
+      <h2>Ανάλυση ακολουθίας</h2>
+      <p class="sub">Ανέβασε ή επικόλλησε ένα FASTA — θα δεις στατιστικά, σύσταση βάσεων, GC και ORFs.</p>
+
+      <label for="p1ncbi">Κατέβασε από NCBI (accession ID, π.χ. NM_000410)</label>
+      <div class="ncbi-row">
+        <input type="text" id="p1ncbi" placeholder="π.χ. NM_000410"
+               aria-label="NCBI accession ID">
+        <button class="btn sm" onclick="fetchNcbi()">Κατέβασε</button>
+      </div>
+
+      <div class="drop" id="p1drop">
+        📄 Σύρε ένα FASTA εδώ ή <b>κάνε κλικ για επιλογή</b>
+        <div class="fname" id="p1fname"></div>
+      </div>
+      <input type="file" id="p1file" accept=".fasta,.fa,.fna,.txt" aria-label="FASTA αρχείο">
+
+      <label for="p1text">...ή επικόλλησε FASTA</label>
+      <textarea id="p1text" rows="5" placeholder="Επικόλλησε FASTA εδώ"
+        aria-label="FASTA κείμενο">&gt;seq1 AT-rich
+ATATTTAAATGGCTTTTGCATAAATTTAAATTTGGGAAATTTAAACCCTTTAAATTTAAA
+&gt;seq2 GC-rich
+GCGCGGCCGGCGATGGGCCGCGCGCTGGAGATTTTTGCCCTGATTCGCCTGTTTCAGGCC
+&gt;seq3 mixed
+ATGGAGGAGCCGCAGTCAGATCCTAGCGTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA</textarea>
+
+      <button class="btn" onclick="analyze()">Ανάλυσε</button>
+      <div id="p1out"></div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 2 ============ -->
+  <section id="p2" class="panel">
+    <div class="card">
+      <h2>Ανίχνευση μεταλλάξεων</h2>
+      <p class="sub">Δώσε δύο ακολουθίες ίδιου μήκους (αναφορά + παραλλαγή) και βρες τις διαφορές.</p>
+      <div class="grid2">
+        <div>
+          <label for="p2ref">Αναφορά (reference)</label>
+          <textarea id="p2ref" rows="4" placeholder="Ακολουθία αναφοράς"
+            aria-label="Ακολουθία αναφοράς">ATGCACTGCAAATTT</textarea>
+        </div>
+        <div>
+          <label for="p2var">Παραλλαγή (variant)</label>
+          <textarea id="p2var" rows="4" placeholder="Ακολουθία παραλλαγής"
+            aria-label="Ακολουθία παραλλαγής">ATGGACTACAAATTT</textarea>
+        </div>
+      </div>
+      <label class="checkline">
+        <input type="checkbox" id="p2align" aria-label="Χρήση alignment">
+        Χρήση alignment (για ακολουθίες <b>διαφορετικού μήκους</b> / indels)
+      </label>
+      <button class="btn" onclick="mutations()">Βρες μεταλλάξεις</button>
+      <div id="p2out"></div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 3 ============ -->
+  <section id="p3" class="panel">
+    <div class="card">
+      <h2>Ταξινόμηση με Machine Learning</h2>
+      <p class="sub">Εκπαίδευσε ένα μοντέλο με FASTA που έχει <code>class=</code> στις κεφαλίδες,
+         και μετά πρόβλεψε την κατηγορία μιας νέας ακολουθίας.</p>
+
+      <h3>Βήμα 1 — Δεδομένα εκπαίδευσης</h3>
+      <div class="drop" id="p3drop">
+        📄 Σύρε το FASTA εκπαίδευσης (π.χ. <b>sequences_for_ml.fasta</b>) ή κάνε κλικ
+        <div class="fname" id="p3fname"></div>
+      </div>
+      <input type="file" id="p3file" accept=".fasta,.fa,.txt" aria-label="FASTA εκπαίδευσης">
+      <button class="btn sm" onclick="train()">Εκπαίδευσε το μοντέλο</button>
+      <div id="p3trainout"></div>
+
+      <h3>Βήμα 2 — Πρόβλεψη νέας ακολουθίας</h3>
+      <label for="p3seq" style="margin-top:0">Ακολουθία για πρόβλεψη</label>
+      <textarea id="p3seq" rows="3" placeholder="Ακολουθία για πρόβλεψη"
+        aria-label="Ακολουθία για πρόβλεψη">GCGCGGCCGGCGCGCGCGCCGCGCGGCCGGCG</textarea>
+      <button class="btn" onclick="predict()">Πρόβλεψε</button>
+      <div id="p3predout"></div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 4 — Ιστορικό ============ -->
+  <section id="p4" class="panel">
+    <div class="card">
+      <h2>Ιστορικό αναλύσεων</h2>
+      <p class="sub">Οι πιο πρόσφατες αναλύσεις που έγιναν (αποθηκεύονται στη βάση δεδομένων).</p>
+      <button class="btn sm" onclick="loadHistory()">Ανανέωση</button>
+      <div id="p4out"></div>
+    </div>
+  </section>
+</main>
+
+<!-- Το JavaScript σε ξεχωριστό αρχείο (φορτώνεται στο τέλος) -->
+<script src="/static/app.js"></script>
+</body>
+</html>

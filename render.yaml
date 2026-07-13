@@ -1,0 +1,11 @@
+# render.yaml — οδηγίες για το Render ώστε να ανεβάσει την εφαρμογή αυτόματα.
+# Στο Render: New +  ->  Blueprint  ->  διάλεξε το repo σου. Θα διαβάσει αυτό το αρχείο.
+services:
+  - type: web
+    name: sequence-toolkit
+    runtime: python
+    plan: free
+    # Εγκατάσταση των βιβλιοθηκών
+    buildCommand: "pip install -r requirements.txt"
+    # Εκκίνηση του server. Μπαίνει στον φάκελο backend και ακούει στη θύρα που δίνει το Render ($PORT).
+    startCommand: "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
